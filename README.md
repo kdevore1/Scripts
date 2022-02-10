@@ -1,2 +1,2 @@
-# Scripts
-cryoem scripts
+# Cryoem scripts
+cryo-em scripts
