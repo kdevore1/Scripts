@@ -1,5 +1,8 @@
 # 1. List the library dependency. 
 #   mrcfile
-#   
-
-# 2. 
+#     none other than numpy https://pypi.org/project/mrcfile/
+#     can use pandas to write arrays into a dataframe format
+# 2. Numpy
+# 3. Pandas
+# 4. PyTorch
+#       numpy
