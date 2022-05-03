@@ -15,7 +15,11 @@ sudo apt install build-essential cmake git libtiff-dev libtiff5-dev mpich curl
 cd ~/Downloads
 wget https://www.fftw.org/fftw-3.3.10.tar.gz
 tar zxvf fftw-3.3.10.tar.gz
-
+cd fftw-3.3.10
+./configure --enable-float --enable-threads --enable-mpi
+make
+sudo make install
+cd ${current_dir}
 
 # 5. Common packages that are used for structural biology
 #   CCP4, Phenix, UCSF Chimera, UCSF ChimeraX, 
