@@ -9,7 +9,7 @@ current_dir=`pwd`
 # 2. Download CUDA and install the run file
 
 # 3. Use apt to install required packages
-sudo apt install build-essential cmake git libtiff-dev libtiff5-dev mpich curl freeglut3-dev
+sudo apt install build-essential cmake git libtiff-dev libtiff5-dev mpich curl freeglut3-dev nettools openssh-server openssh-clients
 
 # 4. Compile FFTW library
 cd ~/Downloads
