@@ -21,6 +21,12 @@ make
 sudo make install
 cd ${current_dir}
 
-# 5. Common packages that are used for structural biology
+# 5. Install Miniconda
+cd ~/Downloads
+wget https://repo.anaconda.com/miniconda/Miniconda3-latest-Linux-x86_64.sh
+bash Miniconda3-latest-Linux-x86_64.sh
+cd ${current_dir}
+
+# 6. Common packages that are used for structural biology
 #   CCP4, Phenix, UCSF Chimera, UCSF ChimeraX, 
 #
