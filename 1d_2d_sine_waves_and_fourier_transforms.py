@@ -1,6 +1,9 @@
+# This script is meant to experiment with the generation of 1D and 2D sine waves + Fourier transforms
+
 # Importing libraries
 import numpy as np
 import matplotlib.pyplot as plt
+
 
 
 
@@ -18,6 +21,7 @@ y = np.sin(2 * np.pi * x / wavelength)
 plt.plot(x, y, "green")
 plt.axes()
 plt.show()
+
 
 
 
@@ -42,6 +46,7 @@ plt.set_cmap("gray")
 # Plotting
 plt.imshow(grating)
 plt.show()
+
 
 
 
@@ -78,6 +83,7 @@ plt.imshow(abs(ft))
 plt.xlim([480, 520])
 plt.ylim([520, 480])  # Order is reversed for y
 plt.show()
+
 
 
 
