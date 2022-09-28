@@ -38,7 +38,7 @@ print(flattened_1d_array)
 
 
 # Reshape 1D array to 2D array
-backprojection = np.reshape(flattened_1d_array, (854,1000)) # will have to change the (columns, rows) based on size original size of image
+backprojection = np.reshape(flattened_1d_array, (854,1000)) # will have to change the (columns, rows) based on original size of image
 print(backprojection)
 
 
