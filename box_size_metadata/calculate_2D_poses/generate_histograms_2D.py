@@ -32,7 +32,7 @@ for file, image_name in zip(file_names, image_name_list):
     # reads in data as numpy array
     data = genfromtxt(file, delimiter=',')
    
-    plt.hist(data, bins=100)
+    plt.hist(data, bins = 30)
     plt.ylabel('Counts')
     plt.xlabel('Poses')
 
