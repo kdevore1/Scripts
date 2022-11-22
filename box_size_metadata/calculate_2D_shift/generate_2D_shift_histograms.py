@@ -27,7 +27,7 @@ std_list = []
 var_list = []
 
 
-# loops through each csv file in the list, calculates the sqrt(x^2+y^2) for each row of df and appends to a list, 
+# loops through each csv file in the list, calculates the sqrt(x^2+y^2) for each row of df and appends to a list
 for file, image in zip(file_list, image_list):
     df = pd.read_csv(file)
     
@@ -45,7 +45,7 @@ for file, image in zip(file_list, image_list):
     plt.savefig(image, dpi = 1200)
     plt.clf()
     
-    # calculate summary statistics (mean, sigma, and variance) and write to separate lists
+    # calculate summary statistics (mean, standard deviation, and variance) and write to separate lists
     mean = n.mean(calculated_shift_list)
     mean_list.append(mean)
     std = n.std(calculated_shift_list)
