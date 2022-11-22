@@ -6,6 +6,7 @@ import numpy as n
 import pandas as pd
 import matplotlib.pyplot as plt
 
+###################################################################################################
 
 # csv files to analyze
 file_list = ['P49_box_1.0_2D_shift.csv', 'P49_box_1.5_2D_shift.csv', 'P49_box_2.0_2D_shift.csv',
@@ -17,12 +18,14 @@ image_list = ['P49_box_1.0_2D_shift.png', 'P49_box_1.5_2D_shift.png', 'P49_box_2
               'P51_box_1.0_2D_shift.png', 'P51_box_1.5_2D_shift.png', 'P51_box_2.0_2D_shift.png',
               'P52_box_1.0_2D_shift.png', 'P52_box_1.5_2D_shift.png', 'P52_box_2.0_2D_shift.png']
 
-
+# output list
 calculated_shift_list = []
 
+# summary statistics list
 mean_list = []
 std_list = []
 var_list = []
+
 
 # loops through each csv file in the list, calculates the sqrt(x^2+y^2) for each row of df and appends to a list, 
 for file, image in zip(file_list, image_list):
