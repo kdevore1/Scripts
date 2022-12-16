@@ -68,11 +68,11 @@ for file in file_name_2_0:
             signal_data[d <= rad] = file[dimension, d <= rad]
 
         # calculate the variance of the background intensity values
-        background_variance = np.var(background_data)
+        background_variance = np.var(background_data[d > rad])
         background_variances.append(background_variance)
 
         # calculate the variance of the signal intensity values
-        signal_variance = np.var(signal_data)
+        signal_variance = np.var(signal_data[d <= rad])
         signal_variances.append(signal_variance)
     
 
