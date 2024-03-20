@@ -1,3 +1,7 @@
+# chromatogram_plotter.py last updated 19 March 2024 by Kira DeVore
+# The purpose of this script is to allow a user to plot SEC data in the format of a .txt file(s) into a legible figure.
+
+
 # Imports
 import numpy as np
 import matplotlib.pyplot as plt
@@ -38,7 +42,7 @@ def Truncate_Data(raw_vol_data_array, raw_mAU_data_array, lower_threshold, upper
     truncated_indices = []
 
     max_length = 0
-
+    
     for dataset_idx in range(raw_vol_data_array.shape[0]):
         dataset_vol = raw_vol_data_array[dataset_idx]
         dataset_mAU = raw_mAU_data_array[dataset_idx]
@@ -108,7 +112,11 @@ def Fourier_filter(truncated_vol_data_array, truncated_mAU_data_array):
         # Append values to each row
         filtered_mAU_data_array[i, :] = ifft_array 
         filtered_vol_data_array[i, :] = no_nan_vol 
-
+        
+        # Replace zeros with nan to fix plotting error
+        filtered_mAU_data_array[filtered_mAU_data_array == 0] = np.nan
+        filtered_vol_data_array[filtered_vol_data_array == 0] = np.nan
+        
     return filtered_vol_data_array, filtered_mAU_data_array
 
 ###########################################################################################
@@ -300,6 +308,8 @@ def AUC_Normalization(mAU_data_array):
         # Store the normalized dataset
         normalized_mAU_data_array[i, :] = normalized_mAU
 
+        print(normalized_mAU_data_array.shape)
+
     return normalized_mAU_data_array
 
 
@@ -330,10 +340,13 @@ def Plot(vol_array, mAU_array):
 
 # Read in all .txt files
 # Specify the folder path containing the text files
-folder_path = 'path'
+folder_path = '/Users/kiradevore/Documents/python_scripts/chromatogram_plotter/'
 
 # Get a list of all text files in the folder
 text_files = glob.glob(os.path.join(folder_path, '*.txt'))
+
+# Sorting text files
+text_files.sort()
 
 # If more than one text file is located in the folder...
 if len(text_files) > 1:
@@ -393,6 +406,7 @@ if multi_data == "y":
         raw_mAU_data_array[i, :len(sublist)] = sublist
 
 ###########################################################################################
+    
     # Ask user if they want to truncate data
     truncation = input("Would you like to truncate your data (y/n)? ")
 
@@ -404,59 +418,119 @@ if multi_data == "y":
         
         # Outputs from truncation function
         truncated_vol_data_array, truncated_mAU_data_array, truncated_indices = Truncate_Data(raw_vol_data_array, raw_mAU_data_array, lower_threshold, upper_threshold)
-        print("Data truncated")
+        print("Data truncated.")
 
     else: 
+
         print("Data will not be truncated.")
 
 ###########################################################################################
+    
     # Ask user if they want to filter data
     filtration = input("Are you trying to Fourier filter your data (y/n)? ")
     
     if filtration == "y":
 
         # Outputs from Fourier filter function
-        filtered_vol_data_array, filtered_mAU_data_array = Fourier_filter(truncated_vol_data_array, truncated_mAU_data_array)
-        print("Data filtered")
+        try:
+            filtered_vol_data_array, filtered_mAU_data_array = Fourier_filter(truncated_vol_data_array, truncated_mAU_data_array)
+            print("Data filtered.")
+        except:
+            filtered_vol_data_array, filtered_mAU_data_array = Fourier_filter(raw_vol_data_array, raw_mAU_data_array)
+            print("Data filtered.")
 
     else: 
+
         print("Data will not be filtered.")
 
 ###########################################################################################
+    
     # Ask user if they want to align peaks 
     alignment = input("Are you trying to align the peaks in your data sets (y/n)? ")
 
     if alignment == "y":
     
-        # Number of peaks used for analysis
-        num_peaks = int(input("How many peaks do you want to use for the alignment? "))
-        maxima_3d_array, alphas, alpha_vol_data_array = Peak_Alignment(filtered_vol_data_array, filtered_mAU_data_array, num_peaks)
-        print("Peaks aligned!")
-        print("Scaling factors: ", alphas)
+        if 'filtered_vol_data_array' in locals() and 'filtered_mAU_data_array' in locals() and \
+        filtered_vol_data_array is not None and filtered_mAU_data_array is not None:
+            
+            # Number of peaks used for analysis
+            num_peaks = int(input("How many peaks do you want to use for the alignment? "))
+            maxima_3d_array, alphas, alpha_vol_data_array, filtered_mAU_data_array = Peak_Alignment(filtered_vol_data_array, filtered_mAU_data_array, num_peaks)
+            print("Peaks aligned.")
+            print("Scaling factors: ", alphas)
         
+        else:
+            print("You need to filter the data before alignment to remove erroneous peaks")
+            exit()
+
     else: 
+
         print("Data will not be aligned.")
 
 ###########################################################################################
+    
     # Ask user if they want to normalize data by any criteria
-    normalization = input("Are you trying to normalize your data your data by (1) maximization, (2) area under the curve? ")
+    normalization = input("Are you trying to normalize your data your data by (1) maximization, (2) area under the curve, (n) or plot as is? ")
+    
     if normalization == "1":
-        
-        normalized_mAU_data_array = Maximization_Normalization(filtered_mAU_data_array) # change to the alignment name
-        print("Data normalized according to the maximum value")
+        if 'filtered_mAU_data_array' in locals() and filtered_mAU_data_array is not None:
+            normalized_mAU_data_array = Maximization_Normalization(filtered_mAU_data_array) 
+            print("Filtered data normalized according to the maximum value.")
+        elif 'truncated_mAU_data_array' in locals() and truncated_mAU_data_array is not None:
+            normalized_mAU_data_array = Maximization_Normalization(truncated_mAU_data_array)
+            print("Truncated data normalized according to the maximum value.")
+        else:
+            normalized_mAU_data_array = Maximization_Normalization(raw_mAU_data_array)
+            print("Raw data normalized according to the maximum value.")
 
     elif normalization == "2":
-        
-        normalized_mAU_data_array = AUC_Normalization(filtered_mAU_data_array) # change to the alignment name
-        print("Data normalized according to the area under the curve (AUC)")
+        if 'filtered_mAU_data_array' in locals() and filtered_mAU_data_array is not None:
+            normalized_mAU_data_array = AUC_Normalization(filtered_mAU_data_array) 
+            print("Filtered data normalized according to the area under the curve (AUC).")
+        elif 'truncated_mAU_data_array' in locals() and truncated_mAU_data_array is not None:
+            normalized_mAU_data_array = AUC_Normalization(truncated_mAU_data_array)
+            print("Truncated data normalized according to the area under the curve (AUC).")
+        else:
+            normalized_mAU_data_array = AUC_Normalization(raw_mAU_data_array)
+            print("Raw data normalized according to the area under the curve (AUC).")
     
     else:
         print("Data will not be normalized.")
     
 ########################################################################################### 
     
-    # Plotting
-    Plot(alpha_vol_data_array, normalized_mAU_data_array)
+    # Plotting 
+    if 'alpha_vol_data_array' in locals() and 'normalized_mAU_data_array' in locals() and \
+    alpha_vol_data_array is not None and normalized_mAU_data_array is not None:
+        print("Plotting aligned and normalized data.")
+        Plot(alpha_vol_data_array, normalized_mAU_data_array)
+    elif 'alpha_vol_data_array' in locals() and 'filtered_mAU_data_array' in locals() and \
+    alpha_vol_data_array is not None and filtered_mAU_data_array is not None:
+        print("Plotting aligned and filtered data.")
+        Plot(alpha_vol_data_array, filtered_mAU_data_array)
+    elif 'filtered_vol_data_array' in locals() and 'normalized_mAU_data_array' in locals() and \
+    filtered_vol_data_array is not None and normalized_mAU_data_array is not None:
+        print("Plotting filtered and normalized data.")
+        Plot(filtered_vol_data_array, normalized_mAU_data_array)
+    elif 'filtered_vol_data_array' in locals() and 'filtered_mAU_data_array' in locals() and \
+        filtered_vol_data_array is not None and filtered_mAU_data_array is not None:
+        print("Plotting filtered data.")
+        Plot(filtered_vol_data_array, filtered_mAU_data_array)
+    elif 'truncated_vol_data_array' in locals() and 'normalized_mAU_data_array' in locals() and \
+    truncated_vol_data_array is not None and normalized_mAU_data_array is not None:
+        print("Plotting truncated and normalized data.")
+        Plot(truncated_vol_data_array, normalized_mAU_data_array)
+    elif 'truncated_vol_data_array' in locals() and 'filtered_mAU_data_array' in locals() and \
+    truncated_vol_data_array is not None and filtered_mAU_data_array is not None:
+        print("Plotting truncated and filtered data.")
+        Plot(truncated_vol_data_array, filtered_mAU_data_array)
+    elif 'truncated_vol_data_array' in locals() and 'truncated_mAU_data_array' in locals() and \
+    truncated_vol_data_array is not None and truncated_mAU_data_array is not None:
+        print("Plotting truncated and filtered data.")
+        Plot(truncated_vol_data_array, truncated_mAU_data_array)
+    else:
+        print("Plotting raw data.")
+        Plot(raw_vol_data_array, raw_mAU_data_array)
 
 ########################################################################################### 
 
@@ -468,7 +542,7 @@ else:
 
 ########################################################################################### 
 
-     # Ask user if they want to truncate data
+    # Ask user if they want to truncate data
     truncation = input("Would you like to truncate your data (y/n)? ")
 
     if truncation == "y":
@@ -477,44 +551,101 @@ else:
         lower_threshold = float(input("What is the lower threshold? "))
         upper_threshold = float(input("What is the upper threshold? "))
         
+        # If one dimensional data... reshape is required
+        if raw_vol_data_array.ndim == 1:
+
+            # Reshape raw_vol_data_array to have shape (num_datasets, number of columns) - assuming you have only one dataset
+            raw_vol_data_array = np.reshape(raw_vol_data_array, (1, -1))  
+            raw_mAU_data_array = np.reshape(raw_mAU_data_array, (1, -1))
+        
         # Outputs from truncation function
         truncated_vol_data_array, truncated_mAU_data_array, truncated_indices = Truncate_Data(raw_vol_data_array, raw_mAU_data_array, lower_threshold, upper_threshold)
-        print("Data truncated")
+        print("Data truncated.")
 
-    else: 
+    else:
+        # If one dimensional data... reshape is required
+        if raw_vol_data_array.ndim == 1:
+
+            # Reshape raw_vol_data_array to have shape (num_datasets, number of columns) - assuming you have only one dataset
+            raw_vol_data_array = np.reshape(raw_vol_data_array, (1, -1))  
+            raw_mAU_data_array = np.reshape(raw_mAU_data_array, (1, -1))
+        
+        # Outputs from truncation function
+        truncated_vol_data_array, truncated_mAU_data_array, truncated_indices = Truncate_Data(raw_vol_data_array, raw_mAU_data_array, 0, 30)
         print("Data will not be truncated.")
 
 ###########################################################################################
+    
     # Ask user if they want to filter data
     filtration = input("Are you trying to Fourier filter your data (y/n)? ")
     
     if filtration == "y":
-
-        # Outputs from Fourier filter function
-        filtered_vol_data_array, filtered_mAU_data_array = Fourier_filter(truncated_vol_data_array, truncated_mAU_data_array)
-        print("Data filtered")
+        
+        try:
+            # Outputs from Fourier filter function
+            filtered_vol_data_array, filtered_mAU_data_array = Fourier_filter(truncated_vol_data_array, truncated_mAU_data_array)
+            print("Data filtered.")
+        
+        except IndexError:
+            print("Data must be truncated in order to be filtered.")
 
     else: 
         print("Data will not be filtered.")
 
 ########################################################################################### 
   
-    # Ask user if they want to normalize data by any criteria
-    normalization = input("Are you trying to normalize your data your data by (1) maximization, (2) area under the curve? ")
+    # Ask user if they want to normalize data by any criteria 
+    normalization = input("Are you trying to normalize your data your data by (1) maximization, (2) area under the curve, (n) or plot as is? ")
+
     if normalization == "1":
-        
-        normalized_mAU_data_array = Maximization_Normalization(filtered_mAU_data_array) # change to the alignment name
-        print("Data normalized according to the maximum value")
+        if 'filtered_mAU_data_array' in locals() and filtered_mAU_data_array is not None:
+            normalized_mAU_data_array = Maximization_Normalization(filtered_mAU_data_array) 
+            print("Filtered data normalized according to the maximum value.")
+        elif 'truncated_mAU_data_array' in locals() and truncated_mAU_data_array is not None:
+            normalized_mAU_data_array = Maximization_Normalization(truncated_mAU_data_array)
+            print("Truncated data normalized according to the maximum value.")
+        else:
+            normalized_mAU_data_array = Maximization_Normalization(raw_mAU_data_array)
+            print("Raw data normalized according to the maximum value.")
 
     elif normalization == "2":
-        
-        normalized_mAU_data_array = AUC_Normalization(filtered_mAU_data_array) # change to the alignment name
-        print("Data normalized according to the area under the curve (AUC)")
-    
+        if 'filtered_mAU_data_array' in locals() and filtered_mAU_data_array is not None:
+            normalized_mAU_data_array = AUC_Normalization(filtered_mAU_data_array) 
+            print("Filtered data normalized according to the area under the curve (AUC).")
+        elif 'truncated_mAU_data_array' in locals() and truncated_mAU_data_array is not None:
+            normalized_mAU_data_array = AUC_Normalization(truncated_mAU_data_array)
+            print("Truncated data normalized according to the area under the curve (AUC).")
+        else:
+            normalized_mAU_data_array = AUC_Normalization(raw_mAU_data_array)
+            print("Raw data normalized according to the area under the curve (AUC).")
+
     else:
         print("Data will not be normalized.")
 
+
 ########################################################################################### 
 
-    # Plotting
-    Plot(filtered_vol_data_array, normalized_mAU_data_array)
+    # Plotting 
+    if 'filtered_vol_data_array' in locals() and 'normalized_mAU_data_array' in locals() and \
+    filtered_vol_data_array is not None and normalized_mAU_data_array is not None:
+        print("Plotting filtered and normalized data.")
+        Plot(filtered_vol_data_array, normalized_mAU_data_array)
+    elif 'filtered_vol_data_array' in locals() and 'filtered_mAU_data_array' in locals() and \
+        filtered_vol_data_array is not None and filtered_mAU_data_array is not None:
+        print("Plotting filtered data.")
+        Plot(filtered_vol_data_array, filtered_mAU_data_array)
+    elif 'truncated_vol_data_array' in locals() and 'normalized_mAU_data_array' in locals() and \
+    truncated_vol_data_array is not None and normalized_mAU_data_array is not None:
+        print("Plotting truncated and normalized data.")
+        Plot(truncated_vol_data_array, normalized_mAU_data_array)
+    elif 'truncated_vol_data_array' in locals() and 'filtered_mAU_data_array' in locals() and \
+    truncated_vol_data_array is not None and filtered_mAU_data_array is not None:
+        print("Plotting truncated and filtered data.")
+        Plot(truncated_vol_data_array, filtered_mAU_data_array)
+    elif 'truncated_vol_data_array' in locals() and 'truncated_mAU_data_array' in locals() and \
+    truncated_vol_data_array is not None and truncated_mAU_data_array is not None:
+        print("Plotting truncated and filtered data.")
+        Plot(truncated_vol_data_array, truncated_mAU_data_array)
+    else:
+        print("Plotting raw data.")
+        Plot(raw_vol_data_array, raw_mAU_data_array)
